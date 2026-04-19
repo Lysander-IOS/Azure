@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en" class="selection:bg-sage/30">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AZURE | Meditative Moroccan Luxury</title>
+    
+    <link rel="icon" href="https://i.ibb.co/8g2pSfTQ/Untitled-design-16.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Inter:wght@200;300;400;500;600&family=Playfair+Display:ital,wght@1,400;1,700&display=swap"
+        rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/@studio-freight/lenis@1.0.33/dist/lenis.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { obsidian: '#0A0A0A', sand: '#D4C3B0', terracotta: '#A65D46', sage: '#7D8C7C' },
+                    fontFamily: {
+                        serif: ['Cormorant Garamond', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                        signature: ['Playfair Display', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        html.lenis {
+            height: auto;
+        }
+
+        .lenis.lenis-smooth {
+            scroll-behavior: auto;
+        }
+
+        body {
+            background-color: #0A0A0A;
+            color: #F5F2ED;
+            overflow-x: hidden;
+            font-size: clamp(15px, 1vw, 18px);
+        }
+
+        #cursor {
+            width: 12px;
+            height: 12px;
+            background: #D4C3B0;
+            border-radius: 50%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 999999;
+            mix-blend-mode: difference;
+        }
+
+        .nav-inner {
+            width: 100%;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 clamp(1.5rem, 5vw, 4rem);
+        }
+
+        .nav-glass {
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(25px);
+            border-bottom: 1px solid rgba(212, 195, 176, 0.1);
+            padding-top: 1rem !important;
+            padding-bottom: 1rem !important;
+        }
+
+        .hero-title {
+            font-size: clamp(3.5rem, 12vw, 14rem);
+        }
+
+        .section-title {
+            font-size: clamp(2.5rem, 6vw, 7rem);
+        }
+
+        .ui-text {
+            font-size: clamp(10px, 0.7vw, 12px);
+            text-transform: uppercase;
+            letter-spacing: 0.4em;
+        }
+
+        /* Detail View Simulation with Left Scrollbar */
+        #detail-view {
+            position: fixed;
+            inset: 0;
+            background: #0A0A0A;
+            z-index: 500000;
+            display: none;
+            overflow-y: auto;
+            pointer-events: none;
+            opacity: 0;
+            direction: rtl;
+            /* Moves scrollbar to left */
+        }
+
+        #detail-view.active {
+            display: block;
+            pointer-events: auto;
+        }
+
+        #detail-content {
+            direction: ltr;
+        }
+
+        /* Keeps content left-to-right */
+
+        /* CUSTOM SCROLLBAR FOR RESIDENCY TABS */
+        #detail-view::-webkit-scrollbar {
+            width: 20px;
+        }
+
+        #detail-view::-webkit-scrollbar-track {
+            background: transparent;
+            margin-top: 100px;
+        }
+
+        #detail-view::-webkit-scrollbar-thumb {
+            background-color: #D4C3B0;
+            border-radius: 20px;
+            border: 6px solid #0A0A0A;
+        }
+
+        /* Dropdown Styling */
+        select {
+            appearance: none;
+            background-color: #141414;
+            border-bottom: 1px solid rgba(212, 195, 176, 0.2);
+            padding: 1rem;
+            width: 100%;
+            color: #D4C3B0;
+            cursor: pointer;
+        }
+
+        select option {
+            background: #141414;
+            color: #D4C3B0;
+        }
+
+        /* Residences Slider */
+        .residences-viewport {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        #residences-slider {
+            display: flex;
+            overflow-x: auto;
+            scrollbar-width: none;
+            gap: 3vw;
+            padding: 2vh 0;
+        }
+
+        #residences-slider::-webkit-scrollbar {
+            display: none;
+        }
+
+        .villa-card {
+            flex: 0 0 clamp(320px, 40vw, 650px);
+            cursor: pointer;
+        }
+
+        .villa-card img {
+            height: clamp(350px, 55vh, 600px);
+            width: 100%;
+            object-fit: cover;
+        }
+
+        .scrollbar-track {
+            width: 100%;
+            max-width: 800px;
+            height: 2px;
+            background: rgba(212, 195, 176, 0.1);
+            margin: 4vh auto 0;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .scrollbar-thumb {
+            position: absolute;
+            top: -5px;
+            height: 12px;
+            width: 120px;
+            background: #D4C3B0;
+            cursor: grab;
+        }
+
+        /* Modals Visibility */
+        .modal-base {
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 10, 10, 0.98);
+            z-index: 800000;
+            display: none;
+            opacity: 0;
+            backdrop-filter: blur(20px);
+            pointer-events: none;
+        }
+
+        .modal-base.active {
+            display: flex;
+            pointer-events: auto;
+        }
+
+        /* Partners */
+        .partner-logo {
+            filter: grayscale(1);
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            opacity: 0.4;
+            transform: scale(0.9);
+        }
+
+        .partner-logo:hover {
+            filter: grayscale(0);
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        /* Global scrollbar for main page */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #D4C3B0;
+        }
+    </style>
+</head>
+
+<body class="font-sans antialiased">
+
+    <div id="cursor"></div>
+
+    <!-- Booking Modal -->
+    <div id="modal-overlay" class="modal-base items-center justify-center p-6">
+        <button onclick="closeModal('modal-overlay')"
+            class="absolute top-10 right-10 ui-text text-sand hover:text-white transition-colors hover-target z-[10]">Close
+            [x]</button>
+        <div class="w-full max-w-2xl relative z-[5]">
+            <h2 class="section-title font-serif italic mb-12 text-center">Inquire Access</h2>
+            <form class="grid grid-cols-1 md:grid-cols-2 gap-8"
+                onsubmit="event.preventDefault(); alert('Request Received.');">
+                <input type="text" placeholder="Full Name" required
+                    class="bg-transparent border-b border-sand/20 py-4 focus:outline-none text-xl font-light">
+                <input type="email" placeholder="Email Address" required
+                    class="bg-transparent border-b border-sand/20 py-4 focus:outline-none text-xl font-light">
+                <input type="tel" placeholder="Phone Number" required
+                    class="bg-transparent border-b border-sand/20 py-4 focus:outline-none text-xl font-light col-span-2">
+                <select class="col-span-2">
+                    <option disabled selected>Azure Residency</option>
+                    <option>Oasis Retreat</option>
+                    <option>Atlas Sanctuary</option>
+                    <option>North Horizon</option>
+                    <option>Traditional Prestige</option>
+                    <option>Elysium Africano</option>
+                </select>
+                <div class="col-span-2 flex justify-center mt-8">
+                    <button type="submit"
+                        class="bg-sand text-obsidian px-16 py-5 ui-text font-semibold hover:bg-white transition-all duration-500 hover-target">Submit
+                        Request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Agent Contact Modal -->
+    <div id="agent-modal" class="modal-base items-center justify-center p-6">
+        <button onclick="closeModal('agent-modal')"
+            class="absolute top-10 right-10 ui-text text-sand hover:text-white transition-colors hover-target z-[10]">Close
+            [x]</button>
+        <div class="w-full max-w-xl text-center relative z-[5]">
+            <h2 class="text-4xl font-serif italic mb-6">Connect with an Agent</h2>
+            <p class="ui-text text-sand/40 mb-12">Response guaranteed within 24 hours</p>
+            <form class="flex flex-col gap-6" onsubmit="event.preventDefault(); alert('Agent notified.');">
+                <input type="text" placeholder="Full Name" required
+                    class="bg-transparent border-b border-sand/20 py-4 focus:outline-none text-xl font-light">
+                <input type="email" placeholder="Email Address" required
+                    class="bg-transparent border-b border-sand/20 py-4 focus:outline-none text-xl font-light">
+                <button type="submit" class="bg-sand text-obsidian py-5 ui-text font-bold mt-6">Confirm Inquiry</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Full Villa Detail View Simulation -->
+    <div id="detail-view">
+        <nav class="fixed top-0 w-full z-[100] py-8 nav-glass">
+            <div class="nav-inner flex justify-between items-center">
+                <button onclick="closeDetail()"
+                    class="ui-text text-sand hover:text-white hover-target flex items-center gap-4">
+                    <span>&larr;</span> Back to Portfolio
+                </button>
+                <span class="text-xl font-serif tracking-[0.2em] uppercase">Azure</span>
+            </div>
+        </nav>
+        <div id="detail-content" class="pt-32 pb-20"></div>
+    </div>
+
+    <!-- Main Navigation -->
+    <nav id="main-nav" class="fixed top-0 w-full z-[100] py-10 transition-all duration-1000">
+        <div class="nav-inner flex justify-between items-center">
+            <a href="#" class="text-2xl font-serif tracking-[0.2em] uppercase hover-target">Azure</a>
+            <div class="hidden lg:flex gap-12 ui-text font-medium text-sand/60">
+                <a href="#about" class="hover-target">About</a>
+                <a href="#collection" class="hover-target">Residences</a>
+                <a href="#partners" class="hover-target">Partners</a>
+                <a href="#inquiry" class="hover-target">Inquiry</a>
+            </div>
+            <button onclick="openModal('modal-overlay')"
+                class="border border-sand/30 px-8 py-3 ui-text hover:bg-sand hover:text-obsidian transition-all duration-500 hover-target">Book
+                a Visit</button>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Hero -->
+        <section class="relative h-screen w-full flex items-center justify-center overflow-hidden">
+            <div id="hero-bg" class="absolute inset-0 z-0 scale-110">
+                <div class="absolute inset-0 bg-black/50 z-10"></div>
+                <img id="hero-img" src="https://archello.com/thumbs/images/2023/01/13/crina-arghirescu-architecture-casablanca-villa-private-houses-archello.1673607825.6726.jpg"
+                    class="w-full h-full object-cover">
+            </div>
+            <div class="relative z-20 text-center px-6">
+                <div class="reveal-wrapper">
+                    <h1 id="hero-title"
+                        class="hero-title font-serif leading-none mb-6 italic text-white opacity-0 translate-y-full">
+                        Azure</h1>
+                </div>
+                <div class="reveal-wrapper">
+                    <p id="hero-sub" class="ui-text font-light opacity-0 translate-y-full text-sand/80">An architectural
+                        ode to tranquility and precision</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="py-24 lg:py-48 px-6 md:px-24">
+            <div class="nav-inner grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+                <div class="lg:col-span-6 order-2 lg:order-1">
+                    <span class="text-terracotta ui-text mb-8 block font-semibold">The Mindset</span>
+                    <h2 class="section-title font-serif leading-tight mb-8 reveal-text italic text-sand">Elevating the
+                        <br>Moroccan Sanctuary</h2>
+                    <p class="text-sand/70 leading-relaxed font-light mb-8 max-w-2xl text-xl lg:text-2xl">
+                        Azure Residency creates refined living spaces rooted in Moroccan architectural heritage and expressed through a modern
+                        luxurious design language.
+                        
+                        Our approach is guided by restraint, proportion, and detail. Bringing together traditional spatial wisdom and
+                        contemporary precision to shape homes that feel grounded, calm, and built to last.
+                    </p>
+                    <p
+                        class="text-sand/50 leading-relaxed font-light mb-12 max-w-xl italic border-l border-sand/20 pl-6">
+                        "Anyone can spend money. Very few know where it matters."
+                    </p>
+                    <div class="flex flex-col gap-2">
+                        <p class="text-4xl lg:text-5xl font-signature italic text-sand/90">Wassim Bougawa</p>
+                        <p class="ui-text text-sand/40">Founder & CEO</p>
+                    </div>
+                </div>
+                <div class="lg:col-span-6 order-1 lg:order-2 relative overflow-hidden h-[45vh] lg:h-[80vh] bg-sand/5">
+                    <img id="about-img" src="https://i.pinimg.com/1200x/0d/b7/ec/0db7ec3d4f7a692d3c75c9f6518713b0.jpg"
+                        class="w-full h-full object-cover grayscale opacity-40 hover:opacity-100 transition-opacity duration-1000">
+                </div>
+            </div>
+        </section>
+
+        <!-- Residences Section -->
+        <section id="collection" class="residences-viewport bg-stone-900/10">
+            <div class="nav-inner mb-6">
+                <span class="text-sage ui-text mb-2 block italic font-medium">The Portfolio</span>
+                <h2 class="section-title font-serif italic text-sand leading-none">Our Residences</h2>
+            </div>
+            <div id="residences-slider" class="px-6 md:px-24"></div>
+            <div class="px-6 md:px-24">
+                <div id="scroll-track" class="scrollbar-track">
+                    <div id="scroll-thumb" class="scrollbar-thumb hover-target"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Partners Section -->
+        <section id="partners" class="py-24 lg:py-48 px-6 md:px-24">
+            <div class="nav-inner text-center">
+                <h2 class="text-2xl font-serif italic mb-4">Backed by leading local and international partners</h2>
+                <div class="w-24 h-[1px] bg-sand/20 mx-auto mb-20"></div>
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-24 items-center">
+        
+                    <a href="https://www.blackstone.com" target="_blank">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/The_Blackstone_Group_logo_%282%29.svg/1280px-The_Blackstone_Group_logo_%282%29.svg.png"
+                            class="partner-logo max-h-20 lg:max-h-24 mx-auto">
+                    </a>
+        
+                    <a href="https://www.cdg.ma" target="_blank">
+                        <img src="https://cdn.prod.website-files.com/63fa8cb969cf803df005967a/63fa8cb969cf80ef800597ab_CDG-LOGO.png"
+                            class="partner-logo max-h-24 lg:max-h-28 mx-auto">
+                    </a>
+        
+                    <a href="https://www.damacproperties.com" target="_blank">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Damac_logo.svg/1920px-Damac_logo.svg.png"
+                            class="partner-logo max-h-16 lg:max-h-20 mx-auto">
+                    </a>
+        
+                    <a href="https://www.almada.ma" target="_blank">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/4/45/Al_Mada_logo_%28color%29.png"
+                            class="partner-logo max-h-24 lg:max-h-28 mx-auto">
+                    </a>
+        
+                </div>
+            </div>
+        </section>
+
+        <!-- Inquiry -->
+        <section id="inquiry" class="py-24 lg:py-48 px-6 md:px-24 bg-obsidian">
+            <div class="max-w-4xl mx-auto text-center">
+                <h2 class="section-title font-serif italic mb-16 text-sand">Inquire</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12 text-left">
+                    <input type="text" placeholder="Full Name"
+                        class="bg-transparent border-b border-sand/20 py-4 focus:outline-none text-xl font-light">
+                    <input type="email" placeholder="Email"
+                        class="bg-transparent border-b border-sand/20 py-4 focus:outline-none text-xl font-light">
+                    <textarea placeholder="Message" rows="2"
+                        class="md:col-span-2 bg-transparent border-b border-sand/20 py-4 focus:outline-none text-xl font-light"></textarea>
+                    <div class="md:col-span-2 flex justify-center"><button
+                            class="bg-sand text-obsidian px-16 py-5 ui-text font-bold hover:bg-white transition-all duration-700 hover-target">Send
+                            Message</button></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="py-20 px-6 md:px-24 border-t border-sand/10">
+            <div class="nav-inner grid grid-cols-1 md:grid-cols-3 gap-16 items-start mb-20">
+                <div>
+                    <h3 class="text-3xl font-serif tracking-widest uppercase mb-6">Azure</h3>
+                    <p class="text-sand/40 ui-text leading-relaxed max-w-xs">An architectural ode to tranquility and
+                        precision.</p>
+                </div>
+                <div class="flex flex-col gap-4">
+                    <p class="ui-text text-sand mb-4 font-bold">Contact</p>
+                    <a href="mailto:concierge@azureresidency.com"
+                        class="text-xl font-serif hover:text-sand/60 transition-colors">concierge@azureresidency.com</a>
+                </div>
+                <div class="flex flex-col gap-6">
+                    <p class="ui-text text-sand mb-4 font-bold">Presence</p>
+                    <div class="flex gap-10">
+                        <a href="#" class="hover-target text-sand hover:opacity-50 transition-opacity ui-text">Insta</a>
+                        <a href="#" class="hover-target text-sand hover:opacity-50 transition-opacity ui-text">X</a>
+                        <a href="#"
+                            class="hover-target text-sand hover:opacity-50 transition-opacity ui-text">Tiktok</a>
+                    </div>
+                </div>
+            </div>
+            <div
+                class="nav-inner text-center border-t border-sand/5 pt-10 text-[9px] uppercase tracking-[0.5em] text-sand/20">
+                &copy; 2025 Azure Residency Portfolio &bull; All Rights Reserved
+            </div>
+        </footer>
+    </main>
+
+    <script>
+        const VILLA_DATA = [
+            { id: 1, name: "Oasis Retreat", location: "Casablanca", area: "600 m²", price: 925000, mainImg: "https://archello.s3.eu-central-1.amazonaws.com/images/2023/01/13/crina-arghirescu-architecture-casablanca-villa-private-houses-archello.1673607822.908.jpg", gallery: ["https://archello.s3.eu-central-1.amazonaws.com/images/2023/01/13/crina-arghirescu-architecture-casablanca-villa-private-houses-archello.1673607934.5786.jpg", "https://archello.s3.eu-central-1.amazonaws.com/images/2023/01/13/crina-arghirescu-architecture-casablanca-villa-private-houses-archello.1673607794.1865.jpg", "https://archello.com/thumbs/images/2023/01/13/crina-arghirescu-architecture-casablanca-villa-private-houses-archello.1673608158.0523.jpg", "https://www.archello.com/thumbs/images/2023/01/13/crina-arghirescu-architecture-casablanca-villa-private-houses-archello.1673608119.7272.jpg", "https://archello.s3.eu-central-1.amazonaws.com/images/2023/01/13/crina-arghirescu-architecture-casablanca-villa-private-houses-archello.1673608117.8949.jpg"] },
+            { id: 2, name: "Atlas Sanctuary", location: "Fes", area: "458 m²", price: 700000, mainImg: "https://archello.s3.eu-central-1.amazonaws.com/images/2020/09/16/yachar-bouhaya-architect-villa-c-private-houses-archello.1600240322.3098.jpg", gallery: ["https://archello.s3.eu-central-1.amazonaws.com/images/2020/09/16/yachar-bouhaya-architect-villa-c-private-houses-archello.1600240346.0255.jpg", "https://archello.com/thumbs/images/2020/09/16/yachar-bouhaya-architect-villa-c-private-houses-archello.1600241035.8348.jpg", "https://archello.com/thumbs/images/2020/09/16/yachar-bouhaya-architect-villa-c-private-houses-archello.1600240598.3188.jpg", "https://archello.com/thumbs/images/2020/09/16/yachar-bouhaya-architect-villa-c-private-houses-archello.1600240633.4621.jpg", "https://archello.com/thumbs/images/2020/09/16/yachar-bouhaya-architect-villa-c-private-houses-archello.1600240634.1309.jpg"] },
+            { id: 3, name: "North Horizon", location: "Tangier", area: "540 m²", price: 850000, mainImg: "https://archello.com/thumbs/images/2025/01/30/driss-kettani-architecte-villa-chadi-private-houses-archello.1738242378.1781.jpg", gallery: ["https://archello.com/thumbs/images/2025/01/30/driss-kettani-architecte-villa-chadi-private-houses-archello.1738242380.5339.jpg", "https://archello.com/thumbs/images/2025/01/30/driss-kettani-architecte-villa-chadi-private-houses-archello.1738242370.1716.jpg", "https://archello.s3.eu-central-1.amazonaws.com/images/2025/01/30/driss-kettani-architecte-villa-chadi-private-houses-archello.1738242379.2394.jpg", "https://archello.com/thumbs/images/2025/01/30/driss-kettani-architecte-villa-chadi-private-houses-archello.1738242370.8581.jpg", "https://archello.com/thumbs/images/2025/01/30/driss-kettani-architecte-villa-chadi-private-houses-archello.1738242373.9293.jpg"] },
+            { id: 4, name: "Traditional Prestige", location: "Rabat", area: "2,100 m²", price: 4500000, mainImg: "https://lh3.googleusercontent.com/yjAO7OYX5IroZ0vonf5ELWaB1XeVkh92Gq-HzIaOVKrFJUs2g1Apfi2mgXO8LL78h2QjWaHdBzQ29xHdYx22DT6Gh7tF_FuSKwoa=rw-w1360-h896-ft", gallery: ["https://lh3.googleusercontent.com/TY2pWmqP8N6YzwSMNOMIhTsQwmnVgDe4PSEVpqX6HaKsiVS8SxdNGPdV_23fTpHb_aQ2AdOT0HTtD-EgWWXzAzd06V1MP0Ini4uuIw=rw-w1360-h896-ft", "https://lh3.googleusercontent.com/bjGlE1e7jebKeZXQcET00yucmgGxayev7BnqNrM1c2RMbmQM5qpedDVHpoCJ3c7Wi8fYqATahYFS9zu3ucM1DSm5N2YyHJXQLyaEZQ=rw-w1360-h896-ft", "https://lh3.googleusercontent.com/t4kOHFkbaoJbuwyKeWNQjvRAFiim4EBw3WIxZmJyEJTmYHf3vfZ-4SxtH1dvaKVu0wX0RVxuf-hbJjKAhZpwfoLRxM9sBbr7az9e=rw-w1360-h896-ft"] },
+            { id: 5, name: "Elysium Africano", location: "Marrakech", area: "460 m²", price: 775000, mainImg: "https://a0.muscache.com/im/pictures/miso/Hosting-1445911199562408764/original/bcd407a6-1e73-43c7-9358-f13e87e4f777.jpeg", gallery: ["https://a0.muscache.com/im/pictures/miso/Hosting-1445911199562408764/original/4498360c-61e0-4a16-8af4-2d7c309d5ad0.jpeg", "https://a0.muscache.com/im/pictures/miso/Hosting-1445911199562408764/original/efcedd6d-c9a2-4b31-bf89-3fdd71a6f1d9.jpeg", "https://a0.muscache.com/im/pictures/miso/Hosting-1445911199562408764/original/ac5b5a45-3e5c-42e0-acba-bafe45a4daac.jpeg", "https://a0.muscache.com/im/pictures/miso/Hosting-1445911199562408764/original/b511b5d2-4a59-4800-8b97-b22ddc6a1e91.jpeg"] }
+        ];
+
+        gsap.registerPlugin(ScrollTrigger);
+
+        function init() {
+            initLenis();
+            initCursor();
+            renderVillas();
+            initAnimations();
+            handleNav();
+            initScrollbar();
+        }
+
+        function initLenis() {
+            const lenis = new Lenis({ lerp: 0.1, duration: 1.5 });
+            function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
+            requestAnimationFrame(raf);
+        }
+
+        function initCursor() {
+            const cursor = document.getElementById('cursor');
+            window.addEventListener('mousemove', e => {
+                gsap.to(cursor, { x: e.clientX - 6, y: e.clientY - 6, duration: 0.1 });
+            });
+        }
+
+        function handleNav() {
+            const nav = document.getElementById('main-nav');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) nav.classList.add('nav-glass');
+                else nav.classList.remove('nav-glass');
+            });
+        }
+
+        function renderVillas() {
+            const container = document.getElementById('residences-slider');
+            VILLA_DATA.forEach(v => {
+                container.innerHTML += `
+                    <div class="villa-card group" onclick="openDetail(${v.id})">
+                        <div class="overflow-hidden mb-6"><img src="${v.mainImg}" class="transition-transform duration-[2s] group-hover:scale-105"></div>
+                        <div class="border-l border-sand/20 pl-6"><p class="ui-text text-sand/30 mb-1 font-semibold">${v.area}</p><h3 class="text-3xl font-serif italic text-sand group-hover:text-white">${v.name}</h3></div>
+                    </div>`;
+            });
+        }
+
+        function initScrollbar() {
+            const slider = document.getElementById('residences-slider');
+            const thumb = document.getElementById('scroll-thumb');
+            const track = document.getElementById('scroll-track');
+
+            slider.addEventListener('scroll', () => {
+                gsap.to(thumb, { x: (slider.scrollLeft / (slider.scrollWidth - slider.clientWidth)) * (track.clientWidth - 120), duration: 0.1 });
+            });
+
+            let isDragging = false;
+            thumb.addEventListener('mousedown', () => isDragging = true);
+            window.addEventListener('mouseup', () => isDragging = false);
+
+            // Fixed the conflict here by using addEventListener instead of overwriting onmousemove
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const rect = track.getBoundingClientRect();
+                slider.scrollLeft = (Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))) * (slider.scrollWidth - slider.clientWidth);
+            });
+        }
+
+        function openModal(id) {
+            const m = document.getElementById(id);
+            m.classList.add('active');
+            gsap.to(m, { opacity: 1, duration: 0.5 });
+        }
+        function closeModal(id) {
+            const m = document.getElementById(id);
+            gsap.to(m, { opacity: 0, duration: 0.3, onComplete: () => m.classList.remove('active') });
+        }
+
+        function openDetail(id) {
+            const v = VILLA_DATA.find(x => x.id === id);
+            const view = document.getElementById('detail-view');
+            document.getElementById('detail-content').innerHTML = `
+                <div class="nav-inner">
+                    <div class="grid lg:grid-cols-2 gap-20 mb-32 items-center">
+                        <img src="${v.mainImg}" class="w-full h-[70vh] object-cover">
+                        <div>
+                            <span class="ui-text text-terracotta mb-4 block">${v.location}</span>
+                            <h1 class="text-7xl font-serif italic mb-8">${v.name}</h1>
+                            <div class="flex gap-12 border-y border-sand/10 py-8 mb-12">
+                                <div><p class="ui-text text-sand/30 mb-2 font-bold">Total Area</p><p class="text-2xl font-serif">${v.area}</p></div>
+                                <div><p class="ui-text text-sand/30 mb-2 font-bold">Property Price</p><p id="p-price" class="text-4xl font-serif">€${v.price.toLocaleString()}</p>
+                                    <div class="flex gap-4 mt-4">
+                                        <button onclick="curr(${v.price},'EUR')" class="ui-text text-sand/40 hover:text-sand hover-target">EUR</button>
+                                        <button onclick="curr(${v.price},'USD')" class="ui-text text-sand/40 hover:text-sand hover-target">USD</button>
+                                        <button onclick="curr(${v.price},'MAD')" class="ui-text text-sand/40 hover:text-sand hover-target">MAD</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex gap-6">
+                                <button onclick="openModal('agent-modal')" class="flex-1 bg-sand text-obsidian py-5 ui-text font-bold hover:bg-white transition-colors hover-target">Buy Property</button>
+                                <button onclick="openModal('agent-modal')" class="flex-1 border border-sand/30 py-5 ui-text hover:bg-sand/10 transition-colors hover-target">Rent Residency</button>
+                            </div>
+                            <p class="mt-8 ui-text text-sand/20">*Inquiry response guaranteed in 24h</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 lg:grid-cols-3 gap-8">
+                        ${v.gallery.map(img => `<img src="${img}" class="w-full h-80 object-cover opacity-80 hover:opacity-100 transition-opacity duration-700">`).join('')}
+                    </div>
+                </div>`;
+            view.classList.add('active');
+            gsap.to(view, { opacity: 1, duration: 0.8 });
+        }
+
+        function closeDetail() {
+            gsap.to(document.getElementById('detail-view'), { opacity: 0, duration: 0.5, onComplete: () => document.getElementById('detail-view').classList.remove('active') });
+        }
+
+        function curr(p, c) {
+            const r = { EUR: 1, USD: 1.08, MAD: 10.9 };
+            const s = { EUR: '€', USD: '$', MAD: 'DH ' };
+            document.getElementById('p-price').innerText = s[c] + (p * r[c]).toLocaleString();
+        }
+
+        function initAnimations() {
+            gsap.to("#hero-title", { opacity: 1, y: 0, duration: 2, delay: 0.5 });
+            gsap.to("#hero-sub", { opacity: 1, y: 0, duration: 1.5, delay: 1 });
+            document.querySelectorAll('.reveal-text').forEach(text => { gsap.from(text, { scrollTrigger: { trigger: text, start: "top 90%" }, y: 60, opacity: 0, duration: 1.5 }); });
+        }
+
+        window.onload = init;
+    </script>
+</body>
+
+</html>
